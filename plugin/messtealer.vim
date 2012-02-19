@@ -30,7 +30,7 @@ set cpoptions&vim
 " Options {{{1
 
 function! s:set_default_option(name, value)
-  if !exists(a:name)
+  if !exists('g:messtealer#' . a:name)
     let g:messtealer#{a:name} = a:value
   endif
 endfunction
