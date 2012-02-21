@@ -19,9 +19,7 @@ set cpoptions&vim
 
 
 
-" Variables {{{1
-
-" Definition of constant. {{{2
+" Constants {{{1
 
 let s:TRUE = 1
 let s:FALSE = !s:TRUE
@@ -30,13 +28,34 @@ let s:PLUGIN_NAME = expand('<sfile>:t:r')
 lockvar! s:TRUE s:FALSE s:PLUGIN_NAME
 
 
-" Definition of a variable. {{{2
+
+
+" Variables {{{1
 
 let s:messtealer = {}
 
 
+" Preparation of initialization. {{{2
 
+function! s:messtealer.__init__() " {{{3
+  call self.__init_variables__()
+  call self.__init_accessor__()
+endfunction
 
+function! s:messtealer.__init_variables__() " {{{3
+  let self._variables_ = {
+        \  'default_stealers': g:messtealer#default_stealers,
+        \  'cache_stealers': self.get_stealers()
+        \ }
+endfunction
+
+function! s:messtealer.__init_accessor__() " {{{3
+  " default_stealers
+  call self._define_accessor('accessor', 'default_stealers')
+
+  " cache_stealers
+  call self._define_accessor('accessor', 'cache_stealers')
+endfunction
 
 
 
@@ -61,6 +80,7 @@ function! messtealer#steal(action, ...) " {{{2
   call s:messtealer.steal(common_action, stealers)
 endfunction
 
+
 function! messtealer#set_default_stealers(stealers) " {{{2
   call s:messtealer.set_default_stealers(a:stealers)
 endfunction
@@ -81,6 +101,7 @@ function! s:messtealer.steal(action, stealers) " {{{2
   endfor
 endfunction
 
+
 function! s:messtealer.convert_common_action(action) " {{{2
   let common_action = {}
   if type(a:action) == type('')
@@ -96,6 +117,7 @@ function! s:messtealer.convert_common_action(action) " {{{2
 
   return common_action
 endfunction
+
 
 function! s:messtealer.get_stealers() " {{{2
   let stealers = split(globpath(&runtimepath, 'autoload/' . s:PLUGIN_NAME . '/stealers/*.vim'), '\n')
@@ -121,14 +143,6 @@ function! s:print_error(message) " {{{2
   endfor
 endfunction
 
-function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
-  let comp_list = copy(s:messtealer.get_cache_stealers())
-  let input_stealers = split(a:cmd_line)[1:]
-  call filter(comp_list, 's:has_value_p(input_stealers, v:val)')
-  call filter(comp_list, 'v:val =~# a:arg_lead')
-
-  return comp_list
-endfunction
 
 function! s:has_value_p(var, val) " {{{2
   let _ = copy(a:var)
@@ -136,6 +150,27 @@ function! s:has_value_p(var, val) " {{{2
     return empty(filter(_, 'v:val == a:val'))
   endif
   throw s:print_error('Variable type is incorrect.')
+endfunction
+
+
+function! s:union_dictionary(dict, add_dict) " {{{2
+  let ret = copy(a:dict)
+  for key in keys(a:add_dict)
+    if !has_key(ret, key)
+      let ret[key] = get(a:add_dict, key)
+    endif
+  endfor
+  return ret
+endfunction
+
+
+function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
+  let comp_list = copy(s:messtealer.get_cache_stealers())
+  let input_stealers = split(a:cmd_line)[1:]
+  call filter(comp_list, 's:has_value_p(input_stealers, v:val)')
+  call filter(comp_list, 'v:val =~# a:arg_lead')
+
+  return comp_list
 endfunction
 
 
@@ -189,45 +224,10 @@ function! s:messtealer.__define_setter(property, options) " {{{3
         \ a:options.ctx != '' ? ', ' . a:options.ctx : '')
 endfunction
 
-function! s:union_dictionary(dict, add_dict) " {{{2
-  let ret = copy(a:dict)
-  for key in keys(a:add_dict)
-    if !has_key(ret, key)
-      let ret[key] = get(a:add_dict, key)
-    endif
-  endfor
-  return ret
-endfunction
-
 
 
 
 " Init {{{1
-
-function! s:messtealer.__init__() " {{{2
-  call self.__init_variables__()
-  call self.__init_accessor__()
-endfunction
-
-function! s:messtealer.__init_variables__() " {{{2
-  let self._variables_ = {
-        \  'default_stealers': g:messtealer#default_stealers,
-        \  'cache_stealers': self.get_stealers()
-        \ }
-endfunction
-
-function! s:messtealer.__init_accessor__() " {{{2
-  " default_stealers
-  call self._define_accessor('accessor', 'default_stealers')
-
-  " cache_stealers
-  call self._define_accessor('accessor', 'cache_stealers')
-endfunction
-
-
-
-
-" Call the initialization function. {{{2
 
 call s:messtealer.__init__()
 

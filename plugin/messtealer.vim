@@ -23,10 +23,6 @@ set cpoptions&vim
 
 
 
-
-
-
-
 " Options {{{1
 
 function! s:set_default_option(name, value)
@@ -40,12 +36,6 @@ call s:set_default_option('default_stealers', ['print_buffer'])
 
 
 
-
-
-
-
-
-
 " Commands {{{1
 
 
@@ -54,11 +44,6 @@ command! -nargs=1 -complete=command MesStealer
 
 command! -nargs=+ -complete=customlist,messtealer#complete_stealers MesStealers
       \ call messtealer#set_default_stealers(split(<q-args>))
-
-
-
-
-
 
 
 
@@ -80,20 +65,12 @@ endfunction
 
 
 
-
-
-
-
 " Epilogue {{{1
 
 let g:loaded_messtealer = 1
 
 let &cpoptions = s:save_cpoptions
 unlet s:save_cpoptions
-
-
-
-
 
 
 
