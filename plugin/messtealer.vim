@@ -51,11 +51,11 @@ command! -nargs=+ -complete=customlist,messtealer#complete_stealers MesStealers
 " Misc {{{1
 
 function! s:steal(input_command)
-  let command_info = s:perse_input_command(a:input_command)
+  let command_info = s:parse_input_command(a:input_command)
   call messtealer#steal(command_info.command, command_info.stealers)
 endfunction
 
-function! s:perse_input_command(input_command)
+function! s:parse_input_command(input_command)
   let _ = split(a:input_command, '--stealers')
   let command = _[0]
   let stealers = len(_) > 1 ? split(_[1]) : []
