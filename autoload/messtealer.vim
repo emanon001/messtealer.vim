@@ -153,17 +153,6 @@ function! s:has_value_p(var, val) " {{{2
 endfunction
 
 
-function! s:union_dictionary(dict, add_dict) " {{{2
-  let ret = copy(a:dict)
-  for key in keys(a:add_dict)
-    if !has_key(ret, key)
-      let ret[key] = get(a:add_dict, key)
-    endif
-  endfor
-  return ret
-endfunction
-
-
 function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
   let comp_list = copy(s:messtealer.get_cache_stealers())
   let input_stealers = split(a:cmd_line)[1:]
@@ -192,7 +181,7 @@ function! s:messtealer._define_accessor(type, property, ...) " {{{3
         \  'is_pred': s:FALSE,
         \  'ctx': ''
         \ }
-  let options = s:union_dictionary(optional_args, optional_args_default_values)
+  let options = extend(copy(optional_args_default_values), optional_args)
 
   if a:type ==# 'accessor'
     call self.__define_getter(a:property, options)
