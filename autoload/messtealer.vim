@@ -66,7 +66,7 @@ function! messtealer#steal(action, ...) " {{{2
   if type(a:action) == type('') && strlen(a:action) == 0
     throw s:create_exception_message('Comand must be at least one character.')
   elseif type(a:action) == type({}) &&
-        \                  (!has_key(a:action, 'action') || type(a:action.call) != type(function('tr')))
+        \                  (!has_key(a:action, 'call') || type(a:action.call) != type(function('tr')))
     throw s:create_exception_message('A dictionary type variable requires the variable "call".')
   endif
 
