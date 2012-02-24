@@ -64,15 +64,12 @@ endfunction
 
 function! messtealer#steal(action, ...) " {{{2
   if type(a:action) == '' && strlen(a:action) == 0
-    call s:print_error('Comand must be at least one character.')
-    return
+    throw s:create_exception_message('Comand must be at least one character.')
   elseif type(a:action) == type({}) &&
         \                  (!has_key(a:action, 'action') || type(a:action.call) != type(function('tr')))
-    call s:print_error('A dictionary type variable requires the variable "call".')
-    return
+    throw s:create_exception_message('A dictionary type variable requires the variable "call".')
   elseif type(a:action) == type([])
-    call s:print_error('Variable type is incorrect.')
-    return
+    throw s:create_exception_message('Variable type is incorrect.')
   endif
 
   let common_action = s:messtealer.convert_common_action(a:action)
@@ -129,8 +126,8 @@ endfunction
 
 " Misc {{{1
 
-function! s:print_error(message) " {{{2
-  let messages = [s:PLUGIN_NAME . ': The error occurred.']
+function! s:print_warning(message) " {{{2
+  let messages = [s:PLUGIN_NAME . ': The warning occurred.']
 
   if type(a:message) == type([])
     call expand(messages, a:message)
@@ -144,12 +141,17 @@ function! s:print_error(message) " {{{2
 endfunction
 
 
+function! s:create_exception_message(message) " {{{2
+  return printf('%s: %s', s:PLUGIN_NAME, a:message)
+endfunction
+
+
 function! s:has_value_p(var, val) " {{{2
   let _ = copy(a:var)
   if type(_) == type({}) || type(_) == type([])
     return !empty(filter(_, 'v:val == a:val'))
   endif
-  throw s:print_error('Variable type is incorrect.')
+  throw s:create_exception_message('Variable type is incorrect.')
 endfunction
 
 
