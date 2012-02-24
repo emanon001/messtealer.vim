@@ -147,7 +147,7 @@ endfunction
 function! s:has_value_p(var, val) " {{{2
   let _ = copy(a:var)
   if type(_) == type({}) || type(_) == type([])
-    return empty(filter(_, 'v:val == a:val'))
+    return !empty(filter(_, 'v:val == a:val'))
   endif
   throw s:print_error('Variable type is incorrect.')
 endfunction
@@ -167,7 +167,7 @@ endfunction
 function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
   let comp_list = copy(s:messtealer.get_cache_stealers())
   let input_stealers = split(a:cmd_line)[1:]
-  call filter(comp_list, 's:has_value_p(input_stealers, v:val)')
+  call filter(comp_list, '!s:has_value_p(input_stealers, v:val)')
   call filter(comp_list, 'v:val =~# a:arg_lead')
 
   return comp_list
