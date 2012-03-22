@@ -179,7 +179,7 @@ function! s:check_action(action) " {{{2
   if empty(filter([type(''), type({}), type(function('tr'))], 'type(a:action) == v:val'))
     throw s:create_exception_message('action - Wrong argument type.')
   elseif  type(a:action) == type('') && strlen(a:action) == 0
-    throw s:create_exception_message('action - Comand must be at least one character.')
+    throw s:create_exception_message('action - Command must be at least one character.')
   elseif type(a:action) == type({}) &&
         \                  (!has_key(a:action, 'call') || type(a:action.call) != type(function('tr')))
     throw s:create_exception_message('action - A dictionary type variable requires the variable "call".')
