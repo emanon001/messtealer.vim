@@ -42,6 +42,9 @@ call s:set_default_option('default_stealers', ['print_buffer'])
 command! -nargs=1 -complete=command MesStealer
       \ call s:steal(<q-args>)
 
+command! -nargs=1 -complete=command MS
+      \ MesStealer <args>
+
 command! -nargs=+ -complete=customlist,messtealer#complete_stealers MesStealers
       \ call messtealer#set_default_stealers(split(<q-args>))
 
