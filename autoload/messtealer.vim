@@ -82,7 +82,7 @@ function! messtealer#set_default_stealers(stealers) " {{{2
     throw s:create_exception_message('stealers - Stealer at least one is required.')
   endif
 
-  let s:messtealer.default_stealers = a:stealers
+  let s:messtealer.default_stealers = copy(a:stealers)
 endfunction
 
 
