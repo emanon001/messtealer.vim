@@ -44,7 +44,7 @@ endfunction
 
 function! s:messtealer.__init_variables__() " {{{3
   let self._variables_ = {
-        \  'default_stealers': g:messtealer#default_stealers,
+        \  'default_stealers': g:messtealer_default_stealers,
         \  'cache_stealers': self.get_stealers()
         \ }
 endfunction
