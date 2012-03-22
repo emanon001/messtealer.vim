@@ -23,19 +23,6 @@ set cpoptions&vim
 
 
 
-" Options {{{1
-
-function! s:set_default_option(name, value)
-  if !exists('g:messtealer_' . a:name)
-    let g:messtealer_{a:name} = a:value
-  endif
-endfunction
-
-call s:set_default_option('default_stealers', ['print_buffer'])
-
-
-
-
 " Commands {{{1
 
 
@@ -55,7 +42,11 @@ command! -nargs=+ -complete=customlist,messtealer#complete_stealers MesStealers
 
 function! s:steal(input_command)
   let command_info = s:parse_input_command(a:input_command)
-  call messtealer#steal(command_info.command, command_info.stealers)
+  if empty(command_info.stealers)
+    call messtealer#steal(command_info.command)
+  else
+    call messtealer#steal(command_info.command, command_info.stealers)
+  endif
 endfunction
 
 function! s:parse_input_command(input_command)

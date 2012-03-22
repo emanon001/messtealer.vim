@@ -38,23 +38,19 @@ let s:messtealer = {}
 " Preparation of initialization. {{{2
 
 function! s:messtealer.__init__() " {{{3
+  call self.__init_options__()
   call self.__init_variables__()
-  call self.__init_accessor__()
+endfunction
+
+function! s:messtealer.__init_options__() " {{{3
+  call s:set_default_option('default_stealers', ['print_buffer'])
 endfunction
 
 function! s:messtealer.__init_variables__() " {{{3
-  let self._variables_ = {
+  call extend(self, {
         \  'default_stealers': g:messtealer_default_stealers,
-        \  'cache_stealers': self.get_stealers()
-        \ }
-endfunction
-
-function! s:messtealer.__init_accessor__() " {{{3
-  " default_stealers
-  call self._define_accessor('accessor', 'default_stealers')
-
-  " cache_stealers
-  call self._define_accessor('accessor', 'cache_stealers')
+        \  'stealers': self.find_stealers()
+        \ })
 endfunction
 
 
@@ -63,21 +59,30 @@ endfunction
 " Interface {{{1
 
 function! messtealer#steal(action, ...) " {{{2
-  if type(a:action) == type('') && strlen(a:action) == 0
-    throw s:create_exception_message('Comand must be at least one character.')
-  elseif type(a:action) == type({}) &&
-        \                  (!has_key(a:action, 'call') || type(a:action.call) != type(function('tr')))
-    throw s:create_exception_message('A dictionary type variable requires the variable "call".')
+  call s:check_action(a:action)
+  if a:0 > 0
+    let _stealers = a:1
+    if type(_stealers) != type([])
+      throw s:create_exception_message('stealers - Wrong argument type.')
+    elseif empty(_stealers)
+      throw s:create_exception_message('stealers - Stealer at least one is required.')
+    endif
   endif
 
   let common_action = s:messtealer.convert_common_action(a:action)
-  let stealers = (exists('a:1') && !empty(a:1)) ? a:1 : s:messtealer.get_default_stealers()
+  let stealers = get(a:000, 0, s:messtealer.default_stealers)
   call s:messtealer.steal(common_action, stealers)
 endfunction
 
 
 function! messtealer#set_default_stealers(stealers) " {{{2
-  call s:messtealer.set_default_stealers(a:stealers)
+  if type(a:stealers) != type([])
+    throw s:create_exception_message('stealers - Wrong argument type.')
+  elseif empty(a:stealers)
+    throw s:create_exception_message('stealers - Stealer at least one is required.')
+  endif
+
+  let s:messtealer.default_stealers = a:stealers
 endfunction
 
 
@@ -114,7 +119,7 @@ function! s:messtealer.convert_common_action(action) " {{{2
 endfunction
 
 
-function! s:messtealer.get_stealers() " {{{2
+function! s:messtealer.find_stealers() " {{{2
   let stealers = split(globpath(&runtimepath, 'autoload/' . s:PLUGIN_NAME . '/stealers/*.vim'), '\n')
   return map(stealers, 'fnamemodify(v:val, ":t:r")')
 endfunction
@@ -154,7 +159,7 @@ endfunction
 
 
 function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
-  let comp_list = copy(s:messtealer.get_cache_stealers())
+  let comp_list = copy(s:messtealer.stealers)
   let input_stealers = split(a:cmd_line)[1:]
   call filter(comp_list, '!s:has_value_p(input_stealers, v:val)')
   call filter(comp_list, 'v:val =~# a:arg_lead')
@@ -163,54 +168,22 @@ function! messtealer#complete_stealers(arg_lead, cmd_line, cursor_pos) " {{{2
 endfunction
 
 
-" Variable operation of messtealer. {{{2
-
-function! s:messtealer._get_value(property, ...) " {{{3
-  let ctx = exists('a:1') ? a:1 : self._variables_
-  return get(ctx, a:property)
-endfunction
-
-function! s:messtealer._set_value(property, value, ...) " {{{3
-  let ctx = exists('a:1') ? a:1 : self._variables_
-  let ctx[a:property] = a:value
-endfunction
-
-function! s:messtealer._define_accessor(type, property, ...) " {{{3
-  let optional_args = exists('a:1') ? copy(a:1) : {}
-  let optional_args_default_values = {
-        \  'is_pred': s:FALSE,
-        \  'ctx': ''
-        \ }
-  let options = extend(copy(optional_args_default_values), optional_args)
-
-  if a:type ==# 'accessor'
-    call self.__define_getter(a:property, options)
-    call self.__define_setter(a:property, options)
-  elseif a:type ==# 'getter'
-    call self.__define_getter(a:property, options)
-  elseif a:type ==# 'setter'
-    call self.__define_setter(a:property, options)
+function! s:set_default_option(name, value) " {{{2
+  if !exists('g:messtealer_' . a:name)
+    let g:messtealer_{a:name} = a:value
   endif
 endfunction
 
-function! s:messtealer.__define_getter(property, options) " {{{3
-  execute printf("function! s:messtealer.%s()\n
-        \   return self._get_value(%s%s)\n
-        \ endfunction",
-        \
-        \ a:options.is_pred ? substitute(a:property, '^is_\(.*\)$', '\1_p', '') : 'get_' . a:property,
-        \ "'" . a:property . "'",
-        \ a:options.ctx != '' ? ', ' . a:options.ctx : '')
-endfunction
 
-function! s:messtealer.__define_setter(property, options) " {{{3
-  execute printf("function! s:messtealer.set_%s(value)\n
-        \   return self._set_value(%sa:value%s)\n
-        \ endfunction",
-        \
-        \ a:property,
-        \ "'" . a:property . "', ",
-        \ a:options.ctx != '' ? ', ' . a:options.ctx : '')
+function! s:check_action(action) " {{{2
+  if empty(filter([type(''), type({}), type(function('tr'))], 'type(a:action) == v:val'))
+    throw s:create_exception_message('action - Wrong argument type.')
+  elseif  type(a:action) == type('') && strlen(a:action) == 0
+    throw s:create_exception_message('action - Comand must be at least one character.')
+  elseif type(a:action) == type({}) &&
+        \                  (!has_key(a:action, 'call') || type(a:action.call) != type(function('tr')))
+    throw s:create_exception_message('action - A dictionary type variable requires the variable "call".')
+  endif
 endfunction
 
 
