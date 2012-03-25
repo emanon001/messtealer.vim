@@ -150,9 +150,10 @@ endfunction
 
 
 function! s:has_value_p(var, val) " {{{2
-  let _ = copy(a:var)
-  if type(_) == type({}) || type(_) == type([])
-    return !empty(filter(_, 'v:val == a:val'))
+  if type(a:var) == type([])
+    return index(a:var, a:val) >= 0
+  elseif type(a:var) == type({})
+    return index(values(a:var), a:val) >= 0
   endif
   throw s:create_exception_message('Variable type is incorrect.')
 endfunction
